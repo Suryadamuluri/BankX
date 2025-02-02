@@ -1,0 +1,157 @@
+package com.bank.demo.service;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.bank.demo.entities.Account;
+import com.bank.demo.entities.Transaction;
+import com.bank.demo.repository.AccountRepository;
+import com.bank.demo.repository.TransactionRepository;
+
+@Service
+public class AccountService implements UserDetailsService{ //extends UserDetailsServiceAutoConfiguration {
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	TransactionRepository transactionRepository;
+	
+	
+	public Account findAccountByUsername(String username)
+	{
+		return accountRepository.findByUsername(username).orElseThrow(()->new RuntimeException("Account Not Found"));
+	}
+	
+	//code for registering user
+	public Account registerAccount(String username,String password)
+	{
+		if(accountRepository.findByUsername(username).isPresent())
+		{
+			throw new RuntimeException("User Already exists");
+		}
+		Account account=new Account();
+		account.setUsername(username);
+		account.setPassword(password);
+		account.setBalance(BigDecimal.ZERO);
+		return accountRepository.save(account); //saving values to database
+	}
+	
+	//code for deposit amount
+	public void deposit(Account account,BigDecimal amount)
+	{
+		account.setBalance(account.getBalance().add(amount));
+		accountRepository.save(account);
+	Transaction transaction =new Transaction(
+			amount,
+			"Deposit",
+			LocalDateTime.now(),
+			account
+		);
+		transactionRepository.save(transaction);
+	}
+	
+	//code for withdrwal
+	
+	public void withdraw(Account account,BigDecimal amount)
+	{
+		if(account.getBalance().compareTo(amount)<0)
+		{
+			throw new RuntimeException("Insuffient Balance Please try Later");
+		}
+		account.setBalance(account.getBalance().subtract(amount));
+		accountRepository.save(account);
+		
+		Transaction transaction=new Transaction(
+				amount,
+				"WithDraw",
+				LocalDateTime.now(),
+				account
+		);
+		transactionRepository.save(transaction);
+				
+	}
+	
+	public List<Transaction> getTransactionHistory(Account account)
+	{
+		return transactionRepository.findByAccountId(account.getId());
+	}
+	
+	//for login purpose we are creating this
+	
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	    Account account = findAccountByUsername(username); // function call in the same function
+	    if (account == null) {
+	        throw new UsernameNotFoundException(username);
+	    }
+	    return new Account(
+	            account.getUsername(),
+	            account.getPassword(),
+	            account.getBalance(),
+	            account.getTransactions(),
+	            authorities() // Assuming authorities() returns a collection of granted authorities
+	    );
+	}
+
+
+	
+	public Collection<? extends GrantedAuthority> authorities(){
+		return Arrays.asList(new SimpleGrantedAuthority("User"));
+		
+	}
+	
+	public void transferAmount(Account fromaccount,String tousername,BigDecimal amount)
+	{
+		if(fromaccount.getBalance().compareTo(amount)<0)
+		{
+			throw new RuntimeException("In Suffient Funds");
+		}
+		Account toaccount=accountRepository.findByUsername(tousername)
+				.orElseThrow(()->new RuntimeException("Recipet Account Not Found"));
+		
+		fromaccount.setBalance(fromaccount.getBalance().subtract(amount));
+		accountRepository.save(fromaccount);
+		
+		
+		toaccount.setBalance(toaccount.getBalance().add(amount));
+		
+		accountRepository.save(toaccount);
+		
+		//create the transactions records
+		
+		Transaction debitTranscation=new Transaction(
+				amount,
+				"Tansfer out to "+toaccount.getUsername(),
+				LocalDateTime.now(),
+				fromaccount
+				
+				);
+		transactionRepository.save(debitTranscation);
+		
+		//create credit Transaction record
+		
+		Transaction creditTranscation=new Transaction(
+				amount,
+				"Tansfer into "+fromaccount.getUsername(),
+				LocalDateTime.now(),
+				toaccount
+				
+				);
+		transactionRepository.save(creditTranscation);
+	}
+	
+}

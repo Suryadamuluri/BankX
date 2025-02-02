@@ -1,0 +1,32 @@
+package com.bank.demo.controller;
+import com.bank.demo.entities.Account;
+import com.bank.demo.service.*;
+
+import org.springframework.ui.Model;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.*;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class BankController {
+
+	@Autowired
+	private AccountService accountService;
+	
+	@GetMapping("/dashboard")
+	public String dsahboard(Model model)
+	{
+		String username=SecurityContextHolder.getContext().getAuthentication().getName();
+		Account account=accountService.findAccountByUsername(username);
+		model.addAttribute("account",account);
+		return "dashboard";
+	}
+	
+	@GetMapping("/register")
+	public String showRegistrationForm()
+	{
+		return "register";
+	}
+	
+}

@@ -1,0 +1,25 @@
+package com.bank.demo.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.bank.demo.entities.Account;
+import com.bank.demo.repository.AccountRepository;
+
+public class AccountService extends UserDetailsService {
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	
+	public Account findAccountByUsernam(String username)
+	{
+		return accountRepository.findByUserName(username).orElseThrow(()->new RuntimeException("Account Not Found"));
+	}
+	
+
+
+}

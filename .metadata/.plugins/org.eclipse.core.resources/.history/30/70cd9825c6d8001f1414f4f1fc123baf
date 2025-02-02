@@ -1,0 +1,56 @@
+package com.bank.demo.service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.bank.demo.entities.Account;
+import com.bank.demo.entities.Transaction;
+import com.bank.demo.repository.AccountRepository;
+import com.bank.demo.repository.TransactionRepository;
+
+public class AccountService extends UserDetailsService {
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	TransactionRepository transactionRepository;
+	
+	
+	public Account findAccountByUsernam(String username)
+	{
+		return accountRepository.findByUserName(username).orElseThrow(()->new RuntimeException("Account Not Found"));
+	}
+	
+	//code for registering user
+	public Account registerAccount(String username,String password)
+	{
+		if(accountRepository.findByUserName(username).isPresent())
+		{
+			throw new RuntimeException("User Already exists");
+		}
+		Account account=new Account();
+		account.setUsername(username);
+		account.setPassword(password);
+		account.setBalance(BigDecimal.ZERO);
+		return accountRepository.save(account); //saving values to database
+	}
+	
+	public void deposit(Account account,BigDecimal amount)
+	{
+		account.setBalance(account.getBalance().add(amount));
+		accountRepository.save(account);
+	Transaction transaction =new Transaction(
+			amount,
+			Deposit,
+			LocalDateTime.now(),
+			account
+		);
+	}
+}

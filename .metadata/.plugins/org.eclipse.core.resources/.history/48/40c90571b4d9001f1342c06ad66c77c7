@@ -1,0 +1,6 @@
+package com.bank.demo.controller;
+
+import org.springframework.beans.factory.annotation.*;
+public class BankController {
+
+}

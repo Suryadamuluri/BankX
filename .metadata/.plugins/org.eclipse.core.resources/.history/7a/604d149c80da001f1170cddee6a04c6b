@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Transaction History</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+		body {
+		    font-family: 'Arial', sans-serif;
+		    background: linear-gradient(to right, #2c3e50, #3498db);
+		    color: #ffffff;
+		    margin: 0;
+		    padding: 0;
+		    height: 100vh;
+		    display: flex;
+		    justify-content: center;
+		    align-items: center;
+		    flex-direction: column;
+		}
+
+		.navbar-custom {
+		    background-color: rgba(0, 0, 0, 0.8);
+		    position: fixed;
+		    top: 0;
+		    width: 100%;
+		    z-index: 1000;
+		}
+
+		.navbar-custom a {
+		    color: #ffffff !important;
+		}
+
+		.navbar-custom .navbar-brand {
+		    font-weight: bold;
+		    font-size: 1.5rem;
+		}
+
+		.dashboard-container {
+		    max-width: 900px;
+		    margin-top: 70px;
+		    text-align: center;
+		    background-color: rgba(0, 0, 0, 0.6);
+		    padding: 30px;
+		    border-radius: 12px;
+		    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		}
+
+		h2, h3 {
+		    margin-bottom: 20px;
+		    font-size: 1.8rem;
+		}
+
+		.btn-primary {
+		    background-color: #1c2833;
+		    border: none;
+		    transition: background-color 0.3s ease;
+		    padding: 12px 20px;
+		    font-size: 1.1rem;
+		}
+
+		.btn-primary:hover {
+		    background-color: #f39c12;
+		    color: #000;
+		}
+
+		.btn-success {
+		    background-color: #27ae60;
+		    border: none;
+		    padding: 12px 20px;
+		    font-size: 1.1rem;
+		}
+
+		.btn-success:hover {
+		    background-color: #2ecc71;
+		}
+
+		.form-container {
+		    background-color: rgba(255, 255, 255, 0.1);
+		    padding: 20px;
+		    border-radius: 10px;
+		    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+		}
+
+		.account-details {
+		    background-color: rgba(255, 255, 255, 0.1);
+		    padding: 25px;
+		    border-radius: 10px;
+		    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+		    margin-bottom: 30px;
+		}
+
+		.account-details p {
+		    font-size: 1.1rem;
+		    margin: 8px 0;
+		}
+
+		.error {
+		    color: #ff6347;
+		    font-size: 1.1rem;
+		}
+
+		.footer {
+		    background-color: rgba(0, 0, 0, 0.8);
+		    color: white;
+		    padding: 15px 0;
+		    font-size: 14px;
+		    position: fixed;
+		    bottom: 0;
+		    width: 100%;
+		    text-align: center;
+		    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+		}
+
+		.footer a {
+		    color: #f39c12;
+		    text-decoration: none;
+		    font-weight: bold;
+		}
+
+		.footer a:hover {
+		    color: #f1c40f;
+		    text-decoration: underline;
+		}
+
+		@keyframes shake {
+		    0% { transform: translateX(0); }
+		    25% { transform: translateX(-5px); }
+		    50% { transform: translateX(5px); }
+		    75% { transform: translateX(-5px); }
+		    100% { transform: translateX(0); }
+		}
+
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <a class="navbar-brand" href="#">Goldencat Bank</a>
+    <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/transactions">Transactions</a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h2 class="text-center">Transaction History</h2>
+    <div class="table-responsive table-custom">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="transaction : ${transactions}">
+                <td th:text="${transaction.id}"></td>
+                <td class="transaction-type" th:text="${transaction.type}"></td>
+                <td class="transaction-amount" th:text="${transaction.amount}"
+                    th:classappend="${transaction.type.contains('Transfer In') || transaction.type == 'Deposit'} ? 'text-success' : 'text-danger'">
+                    <span th:text="${transaction.type.contains('Transfer In') || transaction.type == 'Deposit'} ? '+$' + transaction.amount : '-$' + transaction.amount"></span>
+                </td>
+                <td class="transaction-date" th:text="${transaction.timestamp}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-center"><a href="/dashboard" class="custom-link">Back to Dashboard</a></p>
+</div>
+
+</body>
+</html>

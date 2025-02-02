@@ -1,0 +1,98 @@
+package com.bank.demo.service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.bank.demo.entities.Account;
+import com.bank.demo.entities.Transaction;
+import com.bank.demo.repository.AccountRepository;
+import com.bank.demo.repository.TransactionRepository;
+
+public class AccountService extends UserDetailsService {
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	TransactionRepository transactionRepository;
+	
+	
+	public Account findAccountByUsername(String username)
+	{
+		return accountRepository.findByUserName(username).orElseThrow(()->new RuntimeException("Account Not Found"));
+	}
+	
+	//code for registering user
+	public Account registerAccount(String username,String password)
+	{
+		if(accountRepository.findByUserName(username).isPresent())
+		{
+			throw new RuntimeException("User Already exists");
+		}
+		Account account=new Account();
+		account.setUsername(username);
+		account.setPassword(password);
+		account.setBalance(BigDecimal.ZERO);
+		return accountRepository.save(account); //saving values to database
+	}
+	
+	//code for deposit amount
+	public void deposit(Account account,BigDecimal amount)
+	{
+		account.setBalance(account.getBalance().add(amount));
+		accountRepository.save(account);
+	Transaction transaction =new Transaction(
+			amount,
+			"Deposit",
+			LocalDateTime.now(),
+			account
+		);
+		transactionRepository.save(transaction);
+	}
+	
+	//code for withdrwal
+	
+	public void withdraw(Account account,BigDecimal amount)
+	{
+		if(account.getBalance().compareTo(amount)<0)
+		{
+			throw new RuntimeException("Insuffient Balance Please try Later");
+		}
+		account.setBalance(account.getBalance().subtract(amount));
+		accountRepository.save(account);
+		
+		Transaction transaction=new Transaction(
+				amount,
+				"WithDraw",
+				LocalDateTime.now(),
+				account
+		);
+		transactionRepository.save(transaction);
+				
+	}
+	
+	public List<Transaction> getTransactionHistory(Account account)
+	{
+		return transactionRepository.findByAccountId(account.getId());
+	}
+	
+	//for login purpose we are creating this
+	s
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
+	{
+		Account account=findAccountByUsername(username); //function call in same function
+		if(account==null)
+		{
+			throw new UsernameNotFoundException(username);
+		}
+	}
+	
+}

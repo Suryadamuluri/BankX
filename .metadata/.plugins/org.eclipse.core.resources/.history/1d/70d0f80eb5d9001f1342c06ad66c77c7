@@ -1,0 +1,11 @@
+package com.bank.demo.controller;
+import com.bank.demo.service.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
+
+@Controller
+public class BankController {
+
+	@Autowired
+	AccountService accountService;
+}

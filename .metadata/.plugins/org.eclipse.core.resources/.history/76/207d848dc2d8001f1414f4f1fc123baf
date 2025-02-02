@@ -1,0 +1,6 @@
+package com.bank.demo.service;
+
+public class AccountService extends UserDetailsService {
+	
+
+}
